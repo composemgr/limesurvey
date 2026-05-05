@@ -50,9 +50,9 @@ See `docker-compose.yaml` for complete list of configurable options.
 
 ## 📂 Volumes
 
-- `./rootfs/data/limesurvey` - Data storage
-- `./rootfs/config/limesurvey` - Data storage
-- `./rootfs/data/db/mariadb/limesurvey` - Data storage
+- `./volumes/data/limesurvey` - Data storage
+- `./volumes/config/limesurvey` - Data storage
+- `./volumes/data/db/mariadb/limesurvey` - Data storage
 
 ## 🔐 Security
 
