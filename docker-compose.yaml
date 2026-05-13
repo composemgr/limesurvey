@@ -1,5 +1,6 @@
 # nginx proxy address - http://172.17.0.1:8094
 
+name: limesurvey
 x-logging: &default-logging
   driver: json-file
   options:
@@ -9,20 +10,34 @@ x-logging: &default-logging
 services:
   limesurvey:
     image: martialblog/limesurvey:latest
+    pull_policy: always
     container_name: limesurvey-app
-    restart: unless-stopped
+    restart: always
     logging: *default-logging
     networks:
       - limesurvey
     ports:
-      - "8094:80"
+      - "172.17.0.1:8094:80"
     environment:
       TZ: ${TZ:-America/New_York}
+      DB_TYPE: mysql
+      DB_HOST: limesurvey-db
+      DB_PORT: 3306
+      DB_NAME: ${DB_CREATE_DATABASE_NAME:-limesurvey}
+      DB_USERNAME: ${DB_USER_NAME:-limesurvey}
+      DB_PASSWORD: ${DB_USER_PASS:-changeme_db_password}
+      ADMIN_USER: ${APP_ADMIN_USER:-admin}
+      ADMIN_PASSWORD: ${APP_ADMIN_PASS:-changeme_admin_password}
+      ADMIN_NAME: ${APP_ORG_NAME:-LimeSurvey} Admin
+      ADMIN_EMAIL: ${APP_ADMIN_USER:-admin}@${BASE_DOMAIN_NAME:-example.com}
+      PUBLIC_URL: https://${BASE_HOST_NAME:-$HOSTNAME}
+      LISTEN_PORT: 80
     volumes:
-      - ./volumes/data/limesurvey:/data
-      - ./volumes/config/limesurvey:/config
+      - ./volumes/data/limesurvey:/var/www/html/upload
+      - ./volumes/config/limesurvey:/var/www/html/application/config
     depends_on:
-      - limesurvey-db
+      limesurvey-db:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:80"]
       interval: 30s
@@ -30,9 +45,10 @@ services:
       retries: 3
 
   limesurvey-db:
-    image: mariadb:11
+    image: mariadb:latest
+    pull_policy: always
     container_name: limesurvey-db
-    restart: unless-stopped
+    restart: always
     logging: *default-logging
     networks:
       - limesurvey
@@ -41,7 +57,7 @@ services:
       MARIADB_DATABASE: ${DB_CREATE_DATABASE_NAME:-limesurvey}
       MARIADB_USER: ${DB_USER_NAME:-limesurvey}
       MARIADB_PASSWORD: ${DB_USER_PASS:-changeme_db_password}
-      MARIADB_ROOT_PASSWORD: ${DB_ADMIN_PASS:-changeme_root_password}
+      MARIADB_ROOT_PASSWORD: ${DB_ADMIN_PASS:-changeme_admin_password}
     volumes:
       - ./volumes/data/db/mariadb/limesurvey:/var/lib/mysql
     healthcheck:
@@ -52,4 +68,5 @@ services:
 
 networks:
   limesurvey:
+    name: limesurvey
     external: false
