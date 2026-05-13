@@ -19,7 +19,7 @@ services:
       - proxy
       - cloudflare
     ports:
-      - "172.17.0.1:8094:80"
+      - "172.17.0.1:8094:8080"
     environment:
       TZ: ${TZ:-America/New_York}
       CONTAINER_NAME: limesurvey-app
@@ -35,7 +35,7 @@ services:
       ADMIN_NAME: ${APP_ORG_NAME:-LimeSurvey} Admin
       ADMIN_EMAIL: ${APP_ADMIN_USER:-admin}@${BASE_DOMAIN_NAME:-example.com}
       PUBLIC_URL: https://${BASE_HOST_NAME:-$HOSTNAME}
-      LISTEN_PORT: 80
+      LISTEN_PORT: 8080
     volumes:
       - ./volumes/data/limesurvey:/var/www/html/upload
       - ./volumes/config/limesurvey:/var/www/html/application/config
@@ -43,7 +43,7 @@ services:
       limesurvey-db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -51,7 +51,7 @@ services:
       - 'traefik.enable=true'
       - 'cloudflare.enable=true'
       - 'traefik.docker.network=proxy'
-      - 'cloudflare.service=http://limesurvey-app:80'
+      - 'cloudflare.service=http://limesurvey-app:8080'
       - 'cloudflare.hostname=limesurvey.${CLOUDFLARE_ZONE_NAME:-}'
       - 'traefik.http.routers.limesurvey-app.entrypoints=http'
       - 'traefik.http.routers.limesurvey-app-secure.tls=true'
@@ -62,7 +62,7 @@ services:
       - 'traefik.http.routers.limesurvey-app-secure.rule=Host($(${BASE_HOST_NAME:-$HOSTNAME}))'
       - 'traefik.http.routers.limesurvey-app-secure.tls.certresolver=cloudflare'
       - 'traefik.http.routers.limesurvey-app-secure.service=limesurvey-app'
-      - 'traefik.http.services.limesurvey-app.loadbalancer.server.port=80'
+      - 'traefik.http.services.limesurvey-app.loadbalancer.server.port=8080'
 
   limesurvey-db:
     image: mariadb:latest
